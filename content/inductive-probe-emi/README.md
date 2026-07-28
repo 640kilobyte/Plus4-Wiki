@@ -1,12 +1,12 @@
 # Inductive probe EMI
 
-I have two printers: one generates a relatively normal bed map, while the other doesn't. The inductive sensor sometimes triggers almost "randomly." The bed map is significantly distorted, and it can be measured at the cost of very large point repetitions.
+The inductive sensor sometimes triggers almost "randomly." The bed map is significantly distorted, and it can be measured at the cost of very large point repetitions.
 
 I've noticed that the situation changes significantly during head maintenance, and that the problem depends on the location of the sensor cable.
 
 The original cable is unshielded and without twisted pair. However, the extruder heater is always running, holding the PWM at 140 degrees (to stabilize for piezoelectric sensor measurements).
 
-Disabling the heater during mesh construction stopped the random sensor activations and reduced its reading repeatability to 0.05 mm. Apparently, the inductive sensor cable is picking up interference from the heater's PWM controller.
+Disabling the heater during meshing stopped the random sensor activations and reduced its reading repeatability to 0.05 mm. Apparently, the inductive sensor cable is picking up interference from the heater's PWM controller.
 
 This problem was on the original unit and on the Phaetus Conch.
 
@@ -17,6 +17,9 @@ This problem was on the original unit and on the Phaetus Conch.
 3. Turn off the extruder heater while the sensor is operating.
 
 ### Disable heater while meshing
+
+Meshing is the primary application of an inductive sensor, which uses a small number of measurements per point (2 by default). Everything else has a higher number of measurements and is therefore less susceptible to interference.
+We'll disable the heater only during meshing.
 
 1. Backup `gcode_macro.cfg`
 2. Edit `gcode_macro.cfg`
