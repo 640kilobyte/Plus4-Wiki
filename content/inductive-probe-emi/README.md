@@ -16,22 +16,61 @@ This problem was on the original unit and on the Phaetus Conch.
 2. Use a different type of sensor.
 3. Turn off the extruder heater while the sensor is operating.
 
-### Disable heater while meshing
+### Disable extruder heater while probing
 
-Meshing is the primary application of an inductive sensor, which uses a small number of measurements per point (2 by default). Everything else has a higher number of measurements and is therefore less susceptible to interference.
-We'll disable the heater only during meshing.
+Founded what `smart_effector` can run custom gcode before and after probe.
 
-1. Backup `gcode_macro.cfg`
-2. Edit `gcode_macro.cfg`
-3. Find `[gcode_macro G29]`
-4. Insert new lines before (disable heater) and after (restore temp) calling meshing:
+For changes has 2 options to write changes:
+1. To end of `printer.cfg`
+2. To separate `.cfg` file in printer config folder, and include in end of printer.cfg:
 ```
-        M104 S0 # new line added - disable extruder heater
-        BED_MESH_CALIBRATE PROFILE=kamp
-        M109 S104 # new line added - restore heater to 140c
+[include my_custom_config.cfg]
 ```
+
+Custom gcode:
 ```
-            M104 S0 # new line added - disable extruder heater
-            _BED_MESH_CALIBRATE PROFILE=default
-            M109 S104 # new line added - restore heater to 140c
+#-------- probe heaters activate/deactivate ---------
+[gcode_macro _PROBE_HEATERS_ACTIVATE]
+description: Induction sensor/probe activate heaters
+variable_extruder_temp: 0
+gcode:
+    {% if extruder_temp > 0 %}
+        M104 S{extruder_temp} # extruder
+    {% endif %}
+
+    
+[gcode_macro _PROBE_HEATERS_DEACTIVATE]
+description: Induction sensor/probe deactivate heaters for EMI
+gcode:
+    SET_GCODE_VARIABLE MACRO=_PROBE_HEATERS_ACTIVATE VARIABLE=extruder_temp VALUE={printer["extruder"].target}
+    M104 S0 # extruder
+
+[smart_effector]
+deactivate_on_each_sample: True
+activate_gcode:
+    _PROBE_HEATERS_ACTIVATE
+deactivate_gcode:
+    _PROBE_HEATERS_DEACTIVATE
+```
+
+### Optional additional config
+
+After changes my printers have good repeatability of measurements. I use bigger mesh and lower probe tolerance like on [Better Bed Meshing](../more-accurate-bed-meshing/README.md), and tested what:
+1. No motors tweaks need anymore, but i still use "interpolate: False".
+2. Probe z-speeds can bee increased back to default (5), lift-speed - more then default.
+3. In my case 5 samples per point has "99%" difference in values >0.08 and near measurement points while meshing has adequate difference. I think it safe to decrease probe to 1 sample, but i keep use default 2 for testing. 
+
+```
+# Bigger mesh
+[bed_mesh]
+horizontal_move_z:10
+probe_count:11,11
+bicubic_tension:0.3
+
+[smart_effector]
+speed:5
+lift_speed: 10
+samples: 2
+sample_retract_dist: 10
+samples_tolerance: 0.013
 ```
