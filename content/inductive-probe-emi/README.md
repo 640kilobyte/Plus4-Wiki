@@ -57,7 +57,7 @@ deactivate_gcode:
 
 After changes my printers have good repeatability of measurements. I use bigger mesh and lower probe tolerance like on [Better Bed Meshing](../more-accurate-bed-meshing/README.md), and tested what:
 1. No motors tweaks need anymore, but i still use "interpolate: False".
-2. Probe z-speeds can bee increased back to default (5), lift-speed - more then default.
+2. ~~Probe z-speeds can bee increased back to default (5), lift-speed - more then default.~~ Warning: Some people was reported that the sensor is reacting incorrectly, causing the nozzle to touch the bed. We've decided to reduce the speed to 2.5/5. I'm still investigating the cause.
 3. In my case 5 samples per point has "99%" difference in values >0.08 and near measurement points while meshing has adequate difference. I think it safe to decrease probe to 1 sample, but i keep use default 2 for testing. 
 
 ```
@@ -68,9 +68,9 @@ probe_count:11,11
 bicubic_tension:0.3
 
 [smart_effector]
-speed:5
-lift_speed: 10
-samples: 2
+speed:2.5
+lift_speed: 5
+samples: 2 # default - 2
 sample_retract_dist: 10
 samples_tolerance: 0.013
 ```
