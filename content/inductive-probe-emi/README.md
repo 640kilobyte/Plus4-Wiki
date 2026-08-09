@@ -10,15 +10,24 @@ Disabling the heater during meshing stopped the random sensor activations and re
 
 This problem was on the original unit and on the Phaetus Conch.
 
+## WARNING
+
+Stock inductive probe will fail when heated to ~65c. In this case, the table will ram your head on probe.
+Apparently, cooling the thermal barrier also cools the sensor.
+
 ## Possible solutions
 
 1. Route the sensor cable away from the heater cables. It should also be secured to prevent vibration during printing.
 2. Use a different type of sensor.
-3. Turn off the extruder heater while the sensor is operating.
+3. Turn off the extruder heater while the sensor is operating. But this has some problems described in "warning".
 
-### Disable extruder heater while probing
+### "Disable" extruder heater while probing
 
-Founded what `smart_effector` can run custom gcode before and after probe.
+`smart_effector` can run custom gcode before and after probe.
+
+We cannot turn off extruder - need keep `hotend_fan` enable for cooling stock sensor what controlled by `heater_fan` and i don`t know how enable it manual. So heater will set to 50c - in most cases heater on 50c will turned on with low frequency - table will keep it heated.
+
+50c is default `heater_temp` in `[heater_fan hotend_fan]`.
 
 For changes has 2 options to write changes:
 1. To end of `printer.cfg`
@@ -43,7 +52,7 @@ gcode:
 description: Induction sensor/probe deactivate heaters for EMI
 gcode:
     SET_GCODE_VARIABLE MACRO=_PROBE_HEATERS_ACTIVATE VARIABLE=extruder_temp VALUE={printer["extruder"].target}
-    M104 S0 # extruder
+    M104 S50 # extruder
 
 [smart_effector]
 deactivate_on_each_sample: True
@@ -57,8 +66,8 @@ deactivate_gcode:
 
 After changes my printers have good repeatability of measurements. I use bigger mesh and lower probe tolerance like on [Better Bed Meshing](../more-accurate-bed-meshing/README.md), and tested what:
 1. No motors tweaks need anymore, but i still use "interpolate: False".
-2. ~~Probe z-speeds can bee increased back to default (5), lift-speed - more then default.~~ Warning: Some people was reported that the sensor is reacting incorrectly, causing the nozzle to touch the bed. We've decided to reduce the speed to 2.5/5. I'm still investigating the cause.
-3. In my case 5 samples per point has "99%" difference in values >0.08 and near measurement points while meshing has adequate difference. I think it safe to decrease probe to 1 sample, but i keep use default 2 for testing. 
+2. Probe z-speeds can bee increased back to default (5), lift-speed - more then default.
+3. In my case 5 samples per point has "99%" difference in values >0.08 and near measurement points while meshing has adequate difference. We cannot disable extruder, so `samples` keep to stock value "2".
 
 ```
 # Bigger mesh
@@ -68,8 +77,8 @@ probe_count:11,11
 bicubic_tension:0.3
 
 [smart_effector]
-speed:2.5
-lift_speed: 5
+speed:5
+lift_speed: 10
 samples: 2 # default - 2
 sample_retract_dist: 10
 samples_tolerance: 0.013
